@@ -17,10 +17,9 @@ pub(crate) fn day1() {
 }
 
 fn part1(lines: &Vec<String>) {
-    let line_numbers: Vec<u32> = lines
-        .into_iter()
+    let line_numbers: Vec<u32> = lines.iter()
         .fold(Vec::new(), |mut acc, line| {
-            let nums = line.chars().into_iter().fold(Vec::new(), |mut acc, c| {
+            let nums = line.chars().fold(Vec::new(), |mut acc, c| {
                 if c.is_digit(10) {
                     acc.push(c.to_digit(10).unwrap())
                 }
@@ -31,7 +30,7 @@ fn part1(lines: &Vec<String>) {
 
             // println!("line: {}", line);
             // println!("{}{}", first.unwrap(), last.unwrap());
-            let number = format!("{}{}", first.unwrap(), last.unwrap());
+            let number = format!("{}{}", first.expect("missing number"), last.expect("missing number"));
             acc.push(number.parse::<u32>().unwrap());
             acc
         });
@@ -62,7 +61,7 @@ fn part2(lines: &Vec<String>) {
     ];
 
     let converted_lines: Vec<String> = lines.iter().map(|line| {
-        // let result = line.chars().into_iter().fold(String::new(), |mut acc, ch| {
+        // let result = line.chars().fold(String::new(), |mut acc, ch| {
         //     acc.push(ch);
         //     let res = convert_map.iter().fold(acc, |substr, (key, value)| {
         //         substr.replace(key, value)
