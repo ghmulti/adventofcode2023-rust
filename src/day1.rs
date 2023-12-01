@@ -12,11 +12,11 @@ pub(crate) fn day1() {
     //println!("File contents:\n{}", buffer);
 
     let lines: Vec<String> = buffer.lines().map(String::from).collect();
-    part1(lines.clone());
-    part2(lines.clone());
+    part1(&lines);
+    part2(&lines);
 }
 
-fn part1(lines: Vec<String>) {
+fn part1(lines: &Vec<String>) {
     let line_numbers: Vec<u32> = lines
         .into_iter()
         .fold(Vec::new(), |mut acc, line| {
@@ -40,7 +40,7 @@ fn part1(lines: Vec<String>) {
     println!("Sum of numbers: {}", numbers_sum);
 }
 
-fn part2(lines: Vec<String>) {
+fn part2(lines: &Vec<String>) {
     let convert_map = [
         ("oneight", "18"),
         ("threeight", "38"),
@@ -76,5 +76,5 @@ fn part2(lines: Vec<String>) {
         result
     }).collect();
 
-    part1(converted_lines);
+    part1(&converted_lines);
 }
