@@ -1,20 +1,19 @@
 use std::fs::File;
-use std::io;
 use std::io::Read;
 
-pub(crate) fn day1() -> io::Result<()> {
+pub(crate) fn day1() {
+    println!("Day 1");
     let file_path = "resources/day01.txt";
     // let file_path = "resources/test-input.txt";
-    let mut file = File::open(file_path)?;
+    let mut file = File::open(file_path).expect("Unable to open file");
 
     let mut buffer = String::new();
-    file.read_to_string(&mut buffer)?;
+    file.read_to_string( &mut buffer).expect("Unable to read file into string");
     //println!("File contents:\n{}", buffer);
+
     let lines: Vec<String> = buffer.lines().map(String::from).collect();
     part1(lines.clone());
     part2(lines.clone());
-
-    Ok(())
 }
 
 fn part1(lines: Vec<String>) {
