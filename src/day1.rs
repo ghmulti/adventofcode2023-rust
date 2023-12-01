@@ -3,13 +3,79 @@ use std::io;
 use std::io::Read;
 
 pub(crate) fn day1() -> io::Result<()> {
-    let file_path = "resources/test-input.txt";
+    let file_path = "resources/day01.txt";
+    // let file_path = "resources/test-input.txt";
     let mut file = File::open(file_path)?;
 
     let mut buffer = String::new();
     file.read_to_string(&mut buffer)?;
-
-    println!("File contents:\n{}", buffer);
+    //println!("File contents:\n{}", buffer);
+    let lines: Vec<String> = buffer.lines().map(String::from).collect();
+    part1(lines.clone());
+    part2(lines.clone());
 
     Ok(())
+}
+
+fn part1(lines: Vec<String>) {
+    let line_numbers: Vec<u32> = lines
+        .into_iter()
+        .fold(Vec::new(), |mut acc, line| {
+            let nums = line.chars().into_iter().fold(Vec::new(), |mut acc, c| {
+                if c.is_digit(10) {
+                    acc.push(c.to_digit(10).unwrap())
+                }
+                acc
+            });
+            let first = nums.first();
+            let last = nums.last();
+
+            // println!("line: {}", line);
+            // println!("{}{}", first.unwrap(), last.unwrap());
+            let number = format!("{}{}", first.unwrap(), last.unwrap());
+            acc.push(number.parse::<u32>().unwrap());
+            acc
+        });
+
+    let numbers_sum: u32 = line_numbers.iter().sum();
+    println!("Sum of numbers: {}", numbers_sum);
+}
+
+fn part2(lines: Vec<String>) {
+    let convert_map = [
+        ("oneight", "18"),
+        ("threeight", "38"),
+        ("fiveight", "58"),
+        ("sevenine", "79"),
+        ("eightwo", "82"),
+        ("eighthree", "83"),
+        ("nineight", "98"),
+        ("twone", "21"),
+        ("one", "1"),
+        ("two", "2"),
+        ("three", "3"),
+        ("four", "4"),
+        ("five", "5"),
+        ("six", "6"),
+        ("seven", "7"),
+        ("eight", "8"),
+        ("nine", "9"),
+    ];
+
+    let converted_lines: Vec<String> = lines.iter().map(|line| {
+        // let result = line.chars().into_iter().fold(String::new(), |mut acc, ch| {
+        //     acc.push(ch);
+        //     let res = convert_map.iter().fold(acc, |substr, (key, value)| {
+        //         substr.replace(key, value)
+        //     });
+        //     res
+        // });
+        let result = convert_map.iter().fold(line.to_string(), |acc, (key, value)| {
+            acc.replace(key, value)
+        });
+        // println!("From {} to {}", line, result);
+        result
+    }).collect();
+
+    part1(converted_lines);
 }
