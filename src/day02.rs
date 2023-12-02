@@ -14,7 +14,7 @@ pub(crate) fn day2() {
     // println!("File contents:\n{}", buffer);
 
     let lines: Vec<String> = buffer.lines().map(String::from).collect();
-    let rounds: Vec<Round> = lines.iter().map(|l| { parse_round(l)}).collect();
+    let rounds: Vec<Round> = lines.iter().map(|l| { parse_round(l) }).collect();
 
     part_1(&rounds);
     part_2(&rounds);
@@ -29,22 +29,6 @@ struct RGB {
     red: u8,
     green: u8,
     blue: u8,
-}
-
-impl Display for RGB {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "red {}, green: {}, blue: {}", self.red, self.green, self.blue)
-    }
-}
-
-impl Display for Round {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "Round {{ index: {}, sets: [", self.index)?;
-        for rgb in self.sets.iter() {
-            write!(f, "Set {{ {} }}, ", rgb)?;
-        }
-        write!(f, "] }}")
-    }
 }
 
 fn parse_round(line: &String) -> Round {
@@ -75,6 +59,7 @@ fn parse_round(line: &String) -> Round {
         index: game_index,
     };
     // println!("{}", round);
+
     round
 }
 
@@ -98,4 +83,20 @@ fn part_2(rounds: &Vec<Round>) {
         min_green * min_blue * min_red
     }).sum();
     println!("Sum of power of sets: {}", result);
+}
+
+impl Display for RGB {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "red {}, green: {}, blue: {}", self.red, self.green, self.blue)
+    }
+}
+
+impl Display for Round {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "Round {{ index: {}, sets: [", self.index)?;
+        for rgb in self.sets.iter() {
+            write!(f, "Set {{ {} }}, ", rgb)?;
+        }
+        write!(f, "] }}")
+    }
 }
