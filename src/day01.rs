@@ -25,12 +25,10 @@ fn part1(lines: &Vec<String>) {
                 }
                 acc
             });
-            let first = nums.first();
-            let last = nums.last();
+            let first = nums.first().expect("missing number");
+            let last = nums.last().expect("missing number");
 
-            // println!("line: {}", line);
-            // println!("{}{}", first.unwrap(), last.unwrap());
-            let number = format!("{}{}", first.expect("missing number"), last.expect("missing number"));
+            let number = format!("{}{}", first, last);
             acc.push(number.parse::<u32>().unwrap());
             acc
         });
