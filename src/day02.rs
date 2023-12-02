@@ -77,7 +77,7 @@ fn part_1(rounds: &Vec<Round>) {
 fn part_2(rounds: &Vec<Round>) {
     let result: u64 = rounds.iter().map(|round| {
         let min_green = round.sets.iter().map(| set| { set.green }).filter(|x| x > &0).max().expect("Green not defined") as u64;
-        let min_red = round.sets.iter().map(| set| { set.red }).filter(|x| x > &0).max().expect("Blue not defined") as u64;
+        let min_red = round.sets.iter().map(| set| { set.red }).filter(|x| x > &0).max().expect("Red not defined") as u64;
         let min_blue = round.sets.iter().map(| set| { set.blue }).filter(|x| x > &0).max().expect("Blue not defined") as u64;
         // println!("Round {}, min_green {}, min_red {}, min_blue {}", round, min_green, min_red, min_blue);
         min_green * min_blue * min_red
