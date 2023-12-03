@@ -46,36 +46,30 @@ struct Symbol {
 }
 
 fn parse_line(row_index: usize, line: &String) -> (Vec<PartNumberMaybe>, Vec<Symbol>) {
-    // TODO: refactor duplicate code
-    // TODO: maybe use generators / channels?
+    // TODO: maybe use generators / channels? https://docs.rs/genawaiter/latest/genawaiter/
     let mut numbers: Vec<PartNumberMaybe> = Vec::new();
     let mut symbols: Vec<Symbol> = Vec::new();
     let mut current_number_indexes: Vec<(i16, i16)> = Vec::new();
     let mut current_number = String::new();
+    fn add_number_maybe(current_number: &mut String, current_number_indexes: &mut Vec<(i16, i16)>, numbers: &mut Vec<PartNumberMaybe>) {
+        if current_number.len() > 0 {
+            let value = current_number.parse::<i32>().expect("Invalid number");
+            numbers.push(PartNumberMaybe {
+                value,
+                indexes: current_number_indexes.clone()
+            });
+            current_number.clear();
+            current_number_indexes.clear();
+        }
+    }
     for (col_index, ch) in format!("{}..", line).chars().enumerate() {
         if ch == '.' {
-            if current_number.len() > 0 {
-                let value = current_number.parse::<i32>().expect("Invalid number");
-                numbers.push(PartNumberMaybe {
-                    value,
-                    indexes: current_number_indexes.clone()
-                });
-                current_number.clear();
-                current_number_indexes.clear();
-            }
+            add_number_maybe(&mut current_number, &mut current_number_indexes, &mut numbers);
         } else if ch.is_digit(10) {
             current_number.push(ch);
             current_number_indexes.push((row_index as i16, col_index as i16));
         } else {
-            if current_number.len() > 0 {
-                let value = current_number.parse::<i32>().expect("Invalid number");
-                numbers.push(PartNumberMaybe {
-                    value,
-                    indexes: current_number_indexes.clone()
-                });
-                current_number.clear();
-                current_number_indexes.clear();
-            }
+            add_number_maybe(&mut current_number, &mut current_number_indexes, &mut numbers);
             symbols.push(Symbol{value: ch, index: (row_index as i16, col_index as i16)})
         }
     }
