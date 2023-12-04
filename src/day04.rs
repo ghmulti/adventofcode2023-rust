@@ -91,3 +91,18 @@ fn part_2(game: &Game) {
     // println!("Cards with points: {:?}", index_with_numbers);
     println!("Total number of scratchcards: {}", index_with_numbers.len())
 }
+
+
+#[cfg(test)]
+mod tests {
+    use crate::day04::parse_line;
+
+    #[test]
+    fn parse_line_check() {
+        let line = String::from("Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53");
+        let card = parse_line(&line);
+        assert_eq!(card.index, 1);
+        assert_eq!(card.your_numbers, vec![83, 86, 6, 31, 17, 9, 48, 53]);
+        assert_eq!(card.winning_numbers, vec![41, 48, 83, 86, 17]);
+    }
+}
