@@ -1,5 +1,3 @@
-use std::io::Read;
-
 pub(crate) fn day6() {
     println!("Day 6");
 

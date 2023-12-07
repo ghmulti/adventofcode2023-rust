@@ -19,8 +19,7 @@ fn main() {
     day2();
     day3();
     day4();
-    // brute force alert :)
-    day5();
+    day5(); // brute force alert :)
     day6();
-    day7();
+    day7(); // brute force alert :)
 }

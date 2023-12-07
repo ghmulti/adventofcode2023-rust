@@ -2,47 +2,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 
-use lazy_static::lazy_static;
-
 use crate::day07::HandType::{Five, Four, FullHouse, High, OnePair, Three, TwoPair};
-
-lazy_static! {
-    static ref HAND_TYPE_VALUE_1: HashMap<char, u8> = {
-        let mut hand_type_value = HashMap::new();
-        hand_type_value.insert('A', 14);
-        hand_type_value.insert('K', 13);
-        hand_type_value.insert('Q', 12);
-        hand_type_value.insert('J', 11);
-        hand_type_value.insert('T', 10);
-        hand_type_value.insert('9', 9);
-        hand_type_value.insert('8', 8);
-        hand_type_value.insert('7', 7);
-        hand_type_value.insert('6', 6);
-        hand_type_value.insert('5', 5);
-        hand_type_value.insert('4', 4);
-        hand_type_value.insert('3', 3);
-        hand_type_value.insert('2', 2);
-        hand_type_value
-    };
-
-    static ref HAND_TYPE_VALUE_2: HashMap<char, u8> = {
-        let mut hand_type_value = HashMap::new();
-        hand_type_value.insert('A', 14);
-        hand_type_value.insert('K', 13);
-        hand_type_value.insert('Q', 12);
-        hand_type_value.insert('T', 10);
-        hand_type_value.insert('9', 9);
-        hand_type_value.insert('8', 8);
-        hand_type_value.insert('7', 7);
-        hand_type_value.insert('6', 6);
-        hand_type_value.insert('5', 5);
-        hand_type_value.insert('4', 4);
-        hand_type_value.insert('3', 3);
-        hand_type_value.insert('2', 2);
-        hand_type_value.insert('J', 1);
-        hand_type_value
-    };
-}
 
 pub(crate) fn day7() {
     println!("Day 7");
@@ -52,41 +12,54 @@ pub(crate) fn day7() {
 
     let mut buffer = String::new();
     file.read_to_string( &mut buffer).expect("Unable to read file into string");
-    println!("File contents:\n{}", buffer);
+    // println!("File contents:\n{}", buffer);
 
     let lines: Vec<String> = buffer.lines().map(String::from).collect();
 
-    let parsed_hands_1: Vec<_> = lines.iter().map(|line| {
+    part_1(&lines);
+    part_2(&lines);
+}
+
+fn part_1(lines: &Vec<String>) {
+    let mut parsed_hands_1: Vec<_> = lines.iter().map(|line| {
         let parts: Vec<_> = line.split_whitespace().collect();
         Hand {
             hand_type: parse_hand_type(&parts[0]),
-            value: String::from(parts[0]),
+            value: parts[0],
             bid: parts[1].parse::<u16>().expect("Invalid bid number")
         }
     }).collect();
     // println!("Parsed hands: {:?}", parsed_hands_1);
-    part_1(parsed_hands_1, &HAND_TYPE_VALUE_1);
+    let value_mapper_1 : HashMap<char, u8> = HashMap::from(
+        [('A', 14),('K', 13),('Q', 12),('J', 11),('T', 10),('9', 9),('8', 8),('7', 7),('6', 6),('5', 5),('4', 4),('3', 3),('2', 2),]
+    );
+    calculate_total_winnings(&mut parsed_hands_1, &value_mapper_1);
+}
 
-    let parsed_hands_2: Vec<_> = lines.iter().map(|line| {
+fn part_2(lines: &Vec<String>) {
+    let mut parsed_hands_2: Vec<_> = lines.iter().map(|line| {
         let parts: Vec<_> = line.split_whitespace().collect();
         let combinations = build_joker_combinations(&parts[0]);
         // println!("Joker combinations: {:?}", combinations);
         let best_hand_type: HandType = combinations.iter().fold(parse_hand_type(&*combinations[0]), |current_best, hand| {
-            let possible_hand_type = parse_hand_type(hand);
+            let possible_hand_type: HandType = parse_hand_type(hand);
             if possible_hand_type < current_best { possible_hand_type } else { current_best }
         });
-        println!("Best hand type for {}: {:?}", &parts[0], best_hand_type);
+        // println!("Best hand type for {}: {:?}", parts[0], best_hand_type);
         Hand {
             hand_type: best_hand_type,
-            value: String::from(parts[0]),
+            value: parts[0],
             bid: parts[1].parse::<u16>().expect("Invalid bid number")
         }
     }).collect();
-    part_1(parsed_hands_2, &HAND_TYPE_VALUE_2); // 248029057
+    let value_mapper_2 : HashMap<char, u8> = HashMap::from(
+        [('A', 14),('K', 13),('Q', 12),('T', 10),('9', 9),('8', 8),('7', 7),('6', 6),('5', 5),('4', 4),('3', 3),('2', 2),('J', 1),]
+    );
+    calculate_total_winnings(&mut parsed_hands_2, &value_mapper_2); // 248029057
 }
 
-fn part_1(mut cloned_hands: Vec<Hand>, value_mapper: &HashMap<char, u8>) {
-    cloned_hands.sort_by(|hand1, hand2| {
+fn calculate_total_winnings(hands: &mut Vec<Hand>, value_mapper: &HashMap<char, u8>) {
+    hands.sort_by(|hand1, hand2| {
         if hand1.hand_type != hand2.hand_type {
             hand2.hand_type.cmp(&hand1.hand_type)
         } else {
@@ -95,23 +68,23 @@ fn part_1(mut cloned_hands: Vec<Hand>, value_mapper: &HashMap<char, u8>) {
             hand1_values.cmp(hand2_values)
         }
     });
-    println!("Sorted hands: {:?}", cloned_hands);
-    let bids : Vec<_> = cloned_hands.iter().enumerate().map(|(index, hand)| {
+    // println!("Sorted hands: {:?}", hands);
+    let bids : Vec<_> = hands.iter().enumerate().map(|(index, hand)| {
         (index+1) * hand.bid as usize
     }).collect();
-    println!("Bids: {:?}", bids);
+    // println!("Bids: {:?}", bids);
     println!("Total winnings: {}", bids.iter().sum::<usize>())
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 enum HandType {
-    Five, Four, FullHouse, Three, TwoPair, OnePair, High, Unknown
+    Five, Four, FullHouse, Three, TwoPair, OnePair, High,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-struct Hand {
+struct Hand<'a> {
     hand_type: HandType,
-    value: String,
+    value: &'a str,
     bid: u16,
 }
 
@@ -130,22 +103,6 @@ fn build_joker_combinations(hand: &str) -> Vec<String> {
     return result;
 }
 
-fn generate_combinations(s: &str, current: String, index: usize) {
-    if index == s.len() {
-        // We reached the end of the string, print the current combination
-        println!("{}", current);
-    } else {
-        // If the current character is 'a', branch into both possibilities ('c' and 'd')
-        if s.chars().nth(index) == Some('a') {
-            generate_combinations(s, current.clone() + "c", index + 1);
-            generate_combinations(s, current + "d", index + 1);
-        } else {
-            // If the current character is not 'a', keep it unchanged
-            generate_combinations(s, current + &s[index..index + 1], index + 1);
-        }
-    }
-}
-
 fn parse_hand_type(hand: &str) -> HandType {
     let mut char_count: HashMap<char, u8> = HashMap::new();
     for c in hand.chars() {
@@ -155,7 +112,7 @@ fn parse_hand_type(hand: &str) -> HandType {
     let mut sorted_char_count: Vec<_> = char_count.into_iter().collect();
     sorted_char_count.sort_by(|(_, cnt1), (_, cnt2)| { cnt2.cmp(cnt1) });
     // println!("Sorted char count for {}: {:?}", line, sorted_char_count);
-    let (_, top_cnt) = *sorted_char_count.first().expect("Unable to get first");
+    let (_, top_cnt) = sorted_char_count.first().expect("Unable to get first");
     let hand_type: HandType = match top_cnt {
         5 => Five,
         4 => Four,
@@ -181,7 +138,7 @@ fn parse_hand_type(hand: &str) -> HandType {
 
 #[cfg(test)]
 mod tests {
-    use crate::day07::{Hand, HandType, parse_hand_type};
+    use crate::day07::{HandType, parse_hand_type};
 
     #[test]
     fn check() {
