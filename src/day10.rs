@@ -1,62 +1,61 @@
 use std::collections::HashSet;
 use std::fs::File;
 use std::io;
-use std::io::{Read, Write};
+use std::io::Write;
 use crate::day10::Direction::{DOWN, LEFT, RIGHT, UP};
 
 pub(crate) fn day10() {
     println!("Day 10");
-    // let file_path = "resources/day10.txt";
-    let file_path = "resources/test-input.txt";
-    let mut file = File::open(file_path).expect("Unable to open file");
-
-    let mut buffer = String::new();
-    file.read_to_string( &mut buffer).expect("Unable to read file into string");
-    // println!("File contents:\n{}", buffer);
-
-    let lines: Vec<String> = buffer.lines().map(String::from).collect();
-    let mut map: Vec<Vec<char>> = lines.iter().map(|line| line.chars().collect::<Vec<_>>()).collect();
-
-    // adding one line of dots in beginning and end
-    let dots: Vec<char> = (0..map[0].len()).map(|_| '.').collect();
-    map.insert(0, dots.clone());
-    map.push(dots.clone());
-
-    // adding column of dots in beginning and end of line
-    for e in map.iter_mut() {
-        e.insert(0, '.');
-        e.push('.');
-    };
-    // println!("Chars: {:?}", map);
+    let lines: Vec<_> = include_str!("../resources/day10.txt").lines().collect();
+    let map: Vec<Vec<char>> = format_map(lines);
 
     let start_position = find_start('S', &map);
     let mut path: Vec<_> = part_1(start_position, &map);
-    println!("Path length: {:?}", path.len());
     println!("Steps to farthest position: {:?}", (path.len() as f32/2.0).ceil() as usize);
 
-    path.push(start_position);
+    path.insert(0, start_position);
+    // println!("Path length: {:?}, path: {:?}", path.len(), path);
     visualize("resources/day10-vis.txt", &path, &map).unwrap();
-    let not_enclosed : Vec<_> = part_2((0, 0), &map, &path);
-    visualize("resources/day10-vis-enc.txt", &not_enclosed, &map).unwrap();
 
-    let mut nested: Vec<(usize, usize)> = vec![];
-    for (row, line) in map.iter().enumerate() {
-        for (column, char) in line.iter().enumerate() {
-            let pos = &(row, column);
-            if !path.contains(pos) && !not_enclosed.contains(pos) {
-                nested.push((row, column))
-            }
-        }
-    }
-    visualize("resources/day10-vis-nested.txt", &nested, &map).unwrap();
-    println!("Number of enclosed: {}", nested.len());
+    // failed attempt to solve with part2 with BFS - unable to detect some squeezing parts so I gave up, just to visualize
+    let not_enclosed: Vec<_> = find_not_enclosed((0, 0), &map, &path);
+    visualize("resources/day10-vis-nenc.txt", &not_enclosed, &map).unwrap();
+    visualize_nested(&not_enclosed, &path, &map);
+    // --
+
+    path.push(start_position); // required for shoelace formula
+    let area = calculate_area(&path, &map);
+    println!("Enclosed area: {}", area);
+}
+
+fn calculate_area(path: &Vec<(usize, usize)>, map: &Vec<Vec<char>>) -> usize {
+    let polygon_area = path
+        .windows(2)
+        .map(|w| {
+            // https://en.wikipedia.org/wiki/Shoelace_formula
+            let (p1, p2) = (w[0], w[1]);
+            let x1 = p1.0 as i32;
+            let y1 = p1.1 as i32;
+            let x2 = p2.0 as i32;
+            let y2 = p2.1 as i32;
+            // cartesian coordinate system is required, adjusting y
+            let offset = map.len() as i32;
+            let y1 = offset - y1;
+            let y2 = offset - y2;
+            (x1 * y2) - (x2 * y1)
+        }).sum::<i32>() as usize / 2;
+
+    // https://en.wikipedia.org/wiki/Pick%27s_theorem
+    // A = i + b / 2 - 1   ====>   i = A - b / 2 + 1
+    let number_of_interior_points = polygon_area - path.len() / 2 + 1;
+    number_of_interior_points
 }
 
 fn visualize(filename: &str, path: &Vec<(usize, usize)>, map: &Vec<Vec<char>>) -> io::Result<()> {
     let mut file = File::create(filename)?;
     for (row, line) in map.iter().enumerate() {
         let mut newline = String::new();
-        for (column, char) in line.iter().enumerate() {
+        for (column, _) in line.iter().enumerate() {
             if path.contains(&(row, column)) {
                 newline.push('x');
             } else {
@@ -67,7 +66,6 @@ fn visualize(filename: &str, path: &Vec<(usize, usize)>, map: &Vec<Vec<char>>) -
         file.write_all(b"\n")?;
     }
     file.flush()?;
-
     Ok(())
 }
 
@@ -75,7 +73,6 @@ fn part_1(start_position: (usize, usize), map: &Vec<Vec<char>>) -> Vec<(usize, u
     println!("Start position: {:?}", start_position);
     let connected_pipes: Vec<_> = find_connected_pipes(start_position, &map);
     // println!("Connected pipes: {:?}, {:?}", connected_pipes, find_chars(&connected_pipes, &map));
-
 
     let mut current_position: (usize, usize) = connected_pipes[0];
     let target_position: (usize, usize) = connected_pipes[1];
@@ -94,17 +91,16 @@ fn part_1(start_position: (usize, usize), map: &Vec<Vec<char>>) -> Vec<(usize, u
             visited.push(current_position);
         }
     }
-
     path
 }
 
-fn part_2(start_position: (usize, usize), map: &Vec<Vec<char>>, existing_path: &Vec<(usize, usize)>) -> Vec<(usize, usize)> {
+fn find_not_enclosed(start_position: (usize, usize), map: &Vec<Vec<char>>, existing_path: &Vec<(usize, usize)>) -> Vec<(usize, usize)> {
     println!("Start position: {:?}", start_position);
     let mut path: Vec<(usize, usize)> = vec![start_position];
     let mut visited: HashSet<(usize, usize)> = vec![].into_iter().collect();
     while !path.is_empty() {
         let last_position = path.last().unwrap();
-        let connected: Vec<_> = find_not_enclosed(*last_position, &map, existing_path);
+        let connected: Vec<_> = find_connected_not_in_path(*last_position, &map, existing_path);
         // println!("Checking new position: {:?}, {:?} visited={:?} connected={:?}", last_position, map[last_position.0][last_position.1], visited, connected);
         let not_visited_connected: Vec<_> = connected.iter().cloned().filter(|e| !visited.contains(e)).collect();
         visited.insert(*last_position);
@@ -115,10 +111,6 @@ fn part_2(start_position: (usize, usize), map: &Vec<Vec<char>>, existing_path: &
         }
     }
     visited.into_iter().collect()
-}
-
-fn find_chars(chs: &Vec<(usize, usize)>, map: &Vec<Vec<char>>) -> Vec<char> {
-    chs.iter().map(|(x,y)| { map[*x][*y] }).collect()
 }
 
 fn find_connected_pipes((x, y): (usize, usize), map: &Vec<Vec<char>>) -> Vec<(usize, usize)> {
@@ -138,7 +130,7 @@ fn find_connected_pipes((x, y): (usize, usize), map: &Vec<Vec<char>>) -> Vec<(us
     result
 }
 
-fn find_not_enclosed((x, y): (usize, usize), map: &Vec<Vec<char>>, existing_path: &Vec<(usize, usize)>) -> Vec<(usize, usize)> {
+fn find_connected_not_in_path((x, y): (usize, usize), map: &Vec<Vec<char>>, existing_path: &Vec<(usize, usize)>) -> Vec<(usize, usize)> {
     let mut result: Vec<(usize, usize)> = vec![];
     if x+1<map.len() && !existing_path.contains(&(x+1, y)) {
         result.push((x+1, y));
@@ -152,6 +144,7 @@ fn find_not_enclosed((x, y): (usize, usize), map: &Vec<Vec<char>>, existing_path
     if y>0 && !existing_path.contains(&(x, y-1)) {
         result.push((x, y-1));
     }
+    // something is wrong with squeezing calculation though working for test examples, I gave up :(
     let squeezed_elements: Vec<_> = vec![
         check_squeeze((x, y), &UP, map, existing_path, vec!['|', '7', 'J']),
         check_squeeze((x, y), &UP, map, existing_path, vec!['|', 'F', 'L']),
@@ -222,6 +215,20 @@ fn check_squeeze((x, y): (usize, usize), direction: &Direction, map: &Vec<Vec<ch
     }
 }
 
+fn visualize_nested(not_enclosed: &Vec<(usize, usize)>, path: &Vec<(usize, usize)>, map: &Vec<Vec<char>>) {
+    let mut nested: Vec<(usize, usize)> = vec![];
+    for (row, line) in map.iter().enumerate() {
+        for (column, _) in line.iter().enumerate() {
+            let pos = &(row, column);
+            if !path.contains(pos) && !not_enclosed.contains(pos) {
+                nested.push((row, column))
+            }
+        }
+    }
+    visualize("resources/day10-vis-enclosed.txt", &nested, &map).unwrap();
+    // println!("Number of enclosed: {}", nested.len());
+}
+
 fn find_start(ch: char, map: &Vec<Vec<char>>) -> (usize, usize) {
     for (row, line) in map.iter().enumerate() {
         for (column, char) in line.iter().enumerate() {
@@ -233,7 +240,19 @@ fn find_start(ch: char, map: &Vec<Vec<char>>) -> (usize, usize) {
     panic!("Unable to find start")
 }
 
-// 713 high
-// 65 wrong
-// 668 wrong
-// 665 wrong
+fn format_map(lines: Vec<&str>) -> Vec<Vec<char>> {
+    let mut map: Vec<_> = lines.iter().map(|line| line.chars().collect::<Vec<_>>()).collect();
+
+    // adding one line of dots in beginning and end
+    let dots: Vec<char> = (0..map[0].len()).map(|_| '.').collect();
+    map.insert(0, dots.clone());
+    map.push(dots.clone());
+
+    // adding column of dots in beginning and end of line
+    for e in map.iter_mut() {
+        e.insert(0, '.');
+        e.push('.');
+    };
+
+    map
+}

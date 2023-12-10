@@ -18,7 +18,7 @@ pub(crate) fn day5() {
     let seeds: Vec<i64> = lines[0].replace("seeds: ", "").split_whitespace().map(|e| {
         e.trim().parse::<i64>().expect("invalid seed")
     }).collect();
-    println!("Seeds: {:?}", seeds);
+    // println!("Seeds: {:?}", seeds);
 
     let ranges_to_offset = parse_maps(&lines[2..]);
     println!("Ranges to offset mapping: {:?}", ranges_to_offset);
