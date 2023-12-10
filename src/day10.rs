@@ -2,6 +2,7 @@ use std::collections::HashSet;
 use std::fs::File;
 use std::io;
 use std::io::{Read, Write};
+use crate::day10::Direction::{DOWN, LEFT, RIGHT, UP};
 
 pub(crate) fn day10() {
     println!("Day 10");
@@ -14,7 +15,18 @@ pub(crate) fn day10() {
     // println!("File contents:\n{}", buffer);
 
     let lines: Vec<String> = buffer.lines().map(String::from).collect();
-    let map: Vec<_> = lines.iter().map(|line| line.chars().collect::<Vec<_>>()).collect();
+    let mut map: Vec<Vec<char>> = lines.iter().map(|line| line.chars().collect::<Vec<_>>()).collect();
+
+    // adding one line of dots in beginning and end
+    let dots: Vec<char> = (0..map[0].len()).map(|_| '.').collect();
+    map.insert(0, dots.clone());
+    map.push(dots.clone());
+
+    // adding column of dots in beginning and end of line
+    for e in map.iter_mut() {
+        e.insert(0, '.');
+        e.push('.');
+    };
     // println!("Chars: {:?}", map);
 
     let start_position = find_start('S', &map);
@@ -26,14 +38,12 @@ pub(crate) fn day10() {
     visualize("resources/day10-vis.txt", &path, &map).unwrap();
     let not_enclosed : Vec<_> = part_2((0, 0), &map, &path);
     visualize("resources/day10-vis-enc.txt", &not_enclosed, &map).unwrap();
-    let not_enclosed_2: Vec<_> = part_2((38, 0), &map, &path);
-    visualize("resources/day10-vis-enc2.txt", &not_enclosed_2, &map).unwrap();
 
     let mut nested: Vec<(usize, usize)> = vec![];
     for (row, line) in map.iter().enumerate() {
         for (column, char) in line.iter().enumerate() {
             let pos = &(row, column);
-            if !path.contains(pos) && !not_enclosed.contains(pos) && !not_enclosed_2.contains(pos) {
+            if !path.contains(pos) && !not_enclosed.contains(pos) {
                 nested.push((row, column))
             }
         }
@@ -142,7 +152,74 @@ fn find_not_enclosed((x, y): (usize, usize), map: &Vec<Vec<char>>, existing_path
     if y>0 && !existing_path.contains(&(x, y-1)) {
         result.push((x, y-1));
     }
+    let squeezed_elements: Vec<_> = vec![
+        check_squeeze((x, y), &UP, map, existing_path, vec!['|', '7', 'J']),
+        check_squeeze((x, y), &UP, map, existing_path, vec!['|', 'F', 'L']),
+        check_squeeze((x, y), &DOWN, map, existing_path, vec!['|', '7', 'J']),
+        check_squeeze((x, y), &DOWN, map, existing_path, vec!['|', 'F', 'L']),
+        check_squeeze((x, y), &LEFT, map, existing_path, vec!['-', 'J', 'L']),
+        check_squeeze((x, y), &LEFT, map, existing_path, vec!['-', '7', 'F']),
+        check_squeeze((x, y), &RIGHT, map, existing_path, vec!['-', 'J', 'L']),
+        check_squeeze((x, y), &RIGHT, map, existing_path, vec!['-', '7', 'F']),
+    ].iter().filter(|e| {
+        e.is_some() && !result.contains(&e.unwrap()) && !existing_path.contains(&e.unwrap())
+    }).map(|e| e.unwrap()).collect();
+    if !squeezed_elements.is_empty() {
+        // println!("Found squeezed bubble for {:?}: {:?}", (x, y), squeezed_elements);
+    }
+    result.extend(squeezed_elements);
     result
+}
+
+enum Direction { UP, DOWN, LEFT, RIGHT }
+
+fn check_squeeze((x, y): (usize, usize), direction: &Direction, map: &Vec<Vec<char>>, existing_path: &Vec<(usize, usize)>, possible: Vec<char>) -> Option<(usize, usize)> {
+    match direction {
+        UP => {
+            if x == 0 {
+                None
+            } else if !existing_path.contains(&(x-1, y)) {
+                Some((x-1, y))
+            } else if !possible.contains(&map[x-1][y]) {
+                None
+            } else {
+                check_squeeze((x-1, y), direction, map, existing_path, possible)
+            }
+        }
+        DOWN => {
+            if x+1 == map.len() {
+                None
+            } else if !existing_path.contains(&(x+1, y)) {
+                Some((x+1, y))
+            } else if !possible.contains(&map[x+1][y]) {
+                None
+            } else {
+                check_squeeze((x+1, y), direction, map, existing_path, possible)
+            }
+        }
+        LEFT => {
+            if y == 0 {
+                None
+            } else if !existing_path.contains(&(x, y-1)) {
+                Some((x, y-1))
+            } else if !possible.contains(&map[x][y-1]) {
+                None
+            } else {
+                check_squeeze((x, y-1), direction, map, existing_path, possible)
+            }
+        }
+        RIGHT => {
+            if y+1 == map[0].len() {
+                None
+            } else if !existing_path.contains(&(x, y+1)) {
+                Some((x, y+1))
+            } else if !possible.contains(&map[x][y+1]) {
+                None
+            } else {
+                check_squeeze((x, y+1), direction, map, existing_path, possible)
+            }
+        }
+    }
 }
 
 fn find_start(ch: char, map: &Vec<Vec<char>>) -> (usize, usize) {
@@ -158,3 +235,5 @@ fn find_start(ch: char, map: &Vec<Vec<char>>) -> (usize, usize) {
 
 // 713 high
 // 65 wrong
+// 668 wrong
+// 665 wrong
