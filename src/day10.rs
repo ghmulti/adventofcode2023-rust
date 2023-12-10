@@ -17,7 +17,7 @@ pub(crate) fn day10() {
     // println!("Path length: {:?}, path: {:?}", path.len(), path);
     visualize("resources/day10-vis.txt", &path, &map).unwrap();
 
-    // failed attempt to solve with part2 with BFS - unable to detect some squeezing parts so I gave up, just to visualize
+    // failed attempt to solve part2 with BFS - unable to detect some squeezing parts so I gave up, just to visualize
     let not_enclosed: Vec<_> = find_not_enclosed((0, 0), &map, &path);
     visualize("resources/day10-vis-nenc.txt", &not_enclosed, &map).unwrap();
     visualize_nested(&not_enclosed, &path, &map);
