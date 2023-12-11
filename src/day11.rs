@@ -1,10 +1,10 @@
-use std::iter::zip;
+use std::cmp::min;
 
 pub(crate) fn day11() {
     println!("Day 11");
     // let file_content = include_str!("../resources/test-input.txt");
     let file_content = include_str!("../resources/day11.txt");
-    // println!("File content: {}", file_content);
+    // println!("File content:\n{}", file_content);
     let lines: Vec<_> = file_content.lines().collect();
     let mut map: Vec<Vec<char>> = lines.iter().map(|line| line.chars().collect()).collect();
 
@@ -13,11 +13,20 @@ pub(crate) fn day11() {
 
     let galaxies: Vec<_> = find_galaxies(&map);
     // println!("Galaxies: {:?}", galaxies);
+    let pairs: Vec<_> = find_pairs(&galaxies);
 
-    part_1(&galaxies, &map);
+    part_1(&pairs, &map, 2);
+    part_1(&pairs, &map, 1000000);
 }
 
-fn part_1(galaxies: &Vec<(usize, usize)>, map: &Vec<Vec<char>>) {
+fn part_1(pairs: &Vec<((usize, usize), (usize, usize))>, map: &Vec<Vec<char>>, multiplier: usize) {
+    let distances = pairs.iter().map(|(p1, p2)| {
+        find_distance(p1, p2, multiplier, map)
+    });
+    println!("Sum of distances: {}", distances.sum::<usize>());
+}
+
+fn find_pairs(galaxies: &Vec<(usize, usize)>) -> Vec<((usize, usize), (usize, usize))> {
     let mut pairs: Vec<((usize, usize), (usize, usize))> = vec![];
     for i in 0..galaxies.len() {
         for j in (i+1)..galaxies.len() {
@@ -25,17 +34,21 @@ fn part_1(galaxies: &Vec<(usize, usize)>, map: &Vec<Vec<char>>) {
         }
     }
     // println!("Unique pairs: {:?} [total {}]", pairs, pairs.len());
-
-    let distances = pairs.iter().map(|(p1, p2)| {
-        find_distance(p1, p2)
-    });
-    println!("Sum of distances: {}", distances.sum::<usize>());
+    pairs
 }
 
-fn find_distance((x1, y1): &(usize, usize), (x2, y2): &(usize, usize)) -> usize {
+fn find_distance((x1, y1): &(usize, usize), (x2, y2): &(usize, usize), multiplier: usize, map: &Vec<Vec<char>>) -> usize {
     let x_diff = x2.abs_diff(*x1);
     let y_diff = y2.abs_diff(*y1);
-    let distance = x_diff + y_diff;
+    let min_x = min(*x2, *x1);
+    let min_y = min(*y2, *y1);
+    let x_dist: usize = (min_x..(min_x+x_diff)).map(|x| {
+        if map[x][min_y] == 'o' { multiplier } else { 1 }
+    }).sum();
+    let y_dist: usize = (min_y..(min_y+y_diff)).map(|y| {
+        if map[min_x][y] == 'o' { multiplier } else { 1 }
+    }).sum();
+    let distance = x_dist + y_dist;
     // println!("Distance for [{},{}] [{},{}] = {}", x1, y1, x2, y2, distance);
     distance
 }
@@ -65,14 +78,14 @@ fn expand(map: &mut Vec<Vec<char>>) {
 
     for e in (0..map.len()).rev() {
         if empty_rows.contains(&e) {
-            map.insert(e, map[e].clone())
+            map[e] = map[e].clone().iter().map(|_| 'o').collect();
         }
     }
 
     for e in (0..map[0].len()).rev() {
         if empty_columns.contains(&e) {
             for line in map.iter_mut() {
-                line.insert(e, '.')
+                line[e] = 'o'
             }
         }
     }
