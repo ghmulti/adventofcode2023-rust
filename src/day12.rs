@@ -1,5 +1,3 @@
-use std::fmt::format;
-
 pub(crate) fn day12() {
     println!("Day 12");
     let file_content = include_str!("../resources/test-input.txt");
@@ -7,9 +5,8 @@ pub(crate) fn day12() {
     // println!("File content:\n{}", file_content);
     let lines: Vec<_> = file_content.lines().collect();
 
-    // part_1(&lines);
-    part_2(&lines);
-
+    part_1(&lines);
+    // part_2(&lines);
 }
 
 fn parse_line(line: &str) -> (Vec<usize>, &str){
@@ -20,93 +17,64 @@ fn parse_line(line: &str) -> (Vec<usize>, &str){
 }
 
 fn part_1(lines: &Vec<&str>) {
-    let combinations: Vec<Vec<String>> = lines.iter().map(|line| {
-        let (group, template) = parse_line(line);
-        let combinations = find_combinations(template, &group);
-        // println!("Combinations for template {:?} with groups {:?}: {:?}", template, group, combinations);
-        combinations
+    let combinations: Vec<_> = lines.iter().map(|line| {
+        let (mut group, template) = parse_line(line);
+        let combinations_length = find_combinations(&mut template.chars().collect(), &mut group, 0);
+        println!("Found {} combinations for {:?}", combinations_length, template);
+        combinations_length
     }).collect();
-    let combination_length: Vec<usize> = combinations.iter().map(|e| e.len()).collect();
-    println!("Number of combinations: {:?}", combination_length);
-    println!("Sum of combinations length: {:?}", combination_length.iter().sum::<usize>());
+    println!("Sum of combinations length: {:?}", combinations.iter().sum::<i64>());
 }
 
 fn part_2(lines: &Vec<&str>) {
-    let combinations: Vec<i64> = lines.iter().map(|line| {
+    let combinations: Vec<_> = lines.iter().map(|line| {
         let (group_1, template_1) = parse_line(line);
-        let combinations1 = find_combinations(template_1, &group_1);
-        let template_2: String  = (0..5).map(|e| template_1).collect::<Vec<_>>().join("?");
-        let group_2 = group_1.repeat(5);
-        let combinations2 = find_combinations(&template_2, &group_2);
-        println!("Combinations {:?} [{}], {:?} [{}]", template_1, combinations1.len(), template_2, 0);
-        0
+        let mut template_2: Vec<_>  = (0..5).map(|e| template_1).collect::<Vec<_>>().join("?").chars().collect();
+        let mut group_2 = group_1.repeat(5);
+        find_combinations(&mut template_2, &mut group_2, 0)
     }).collect();
-    println!("Number of combinations: {:?}", combinations);
     println!("Sum of combinations length: {:?}", combinations.iter().sum::<i64>());
 }
-fn find_combinations(template: &str, groups: &Vec<usize>) -> Vec<String> {
-    let unknowns: Vec<usize> = template.chars().enumerate().filter(|(_, ch)| *ch == '?').map(|(index, _)| index).collect();
-    // println!("Searching for combinations for {:?}, group {:?}, unknown indexes {:?}", template, groups, unknowns);
-    let possible_combinations = generate_combinations(unknowns.len(), &vec!['.', '#'], &mut Vec::new());
-    // println!("Possible combinations {:?} [{}]", possible_combinations, possible_combinations.len());
-    let mut result: Vec<String> = vec![];
-    for combination in possible_combinations {
-        let mut value: Vec<char> = template.chars().clone().collect();
-        for (char, index) in combination.iter().zip(unknowns.iter()) {
-            value[*index] = *char
+fn find_combinations(springs: &mut Vec<char>, groups: &Vec<usize>, counter: usize) -> i64 {
+    // println!("Working with springs {:?} groups {:?} counter {}", springs, groups, counter);
+    if springs.is_empty() {
+        if groups.len() == 1 && counter == groups[0] || groups.is_empty() && counter == 0 {
+            return 1
         }
-        if check_value(&value, groups) {
-            result.push(value.iter().collect())
-        }
+        return 0
     }
-    // println!("Working combinations {:?} [{}]", result, result.len());
-    result
-}
-
-fn check_value(value: &Vec<char>, groups: &Vec<usize>) -> bool {
-    // println!("Checking value {:?} against group {:?}", value, groups);
-    calculate_consecutive_elements(value) == *groups
-}
-
-fn calculate_consecutive_elements(value: &Vec<char>) -> Vec<usize> {
-    let mut result: (usize, Vec<usize>) = value.iter().fold( (0, vec![]), |mut acc, e| {
-        if *e == '#' {
-            acc.0 += 1;
-            acc
-        } else if acc.0 > 0 {
-            (acc.1).push(acc.0);
-            (0, acc.1)
+    let spring = springs[0];
+    springs.remove(0);
+    let number_in_group = if groups.is_empty() { 0 } else { groups[0] };
+    if spring == '?' {
+        let mut p1 = vec!['#'];
+        let mut p2 = vec!['.'];
+        p1.extend(springs.clone());
+        p2.extend(springs.clone());
+        // println!("Searching for {:?}", p1);
+        let p1_len = find_combinations(&mut p1, groups, counter);
+        // println!("Searching for {:?}", p2);
+        let p2_len = find_combinations(&mut p2, groups, counter);
+        // println!("Combining results {} {}", p1_len, p2_len);
+        return p1_len + p2_len
+    }
+    if spring == '#' {
+        return if counter > number_in_group {
+            0
         } else {
-            acc
+            find_combinations(springs, groups, counter + 1)
         }
-    });
-    if result.0 > 0 {
-        result.1.push(result.0);
     }
-    result.1
-}
-
-fn generate_combinations(length: usize, chars: &Vec<char>, acc: &mut Vec<char>) -> Vec<Vec<char>> {
-    if acc.len() == length {
-        return vec![acc.clone()];
+    if spring == '.' {
+        return if counter == 0 {
+            find_combinations(springs, groups, 0)
+        } else if counter == number_in_group {
+            let mut new_groups = groups.clone();
+            new_groups.remove(0);
+            find_combinations(springs, &new_groups, 0)
+        } else {
+            0
+        }
     }
-    let mut result : Vec<Vec<char>> = vec![];
-    for &ch in chars.iter() {
-        acc.push(ch);
-        let nested = generate_combinations(length, chars, acc);
-        result.extend(nested);
-        acc.pop();
-    }
-    result
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::day12::calculate_consecutive_elements;
-
-    #[test]
-    fn check() {
-        assert_eq!(calculate_consecutive_elements(&vec!['.', '#', '#', '#', '.', '.', '.', '#', '#', '.', '.', '#']), [3, 2, 1]);
-        assert_eq!(calculate_consecutive_elements(&vec!['.', '#', '#', '#', '.', '#', '.', '#', '#', '.', '.', '#']), [3, 1, 2, 1]);
-    }
+    panic!("Invalid spring {}", spring)
 }
