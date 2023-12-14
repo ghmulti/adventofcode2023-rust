@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::time::Instant;
 
 pub(crate) fn day14() {
     println!("Day 14");
@@ -13,9 +14,10 @@ pub(crate) fn day14() {
     let score = calculate_score(&map_with_moved_rocks);
     println!("Total load on the north support beam: {}", score);
 
+    let now = Instant::now();
     let map_with_moved_rocks = part_2(&map);
     let score = calculate_score(&map_with_moved_rocks);
-    println!("Total load on the north support beam after 1000000000 cycles: {}", score);
+    println!("Total load on the north support beam after 1000000000 cycles: {}, {}secs", score, now.elapsed().as_secs());
 }
 
 fn part_2(map: &Vec<Vec<char>>) -> Vec<Vec<char>> {
