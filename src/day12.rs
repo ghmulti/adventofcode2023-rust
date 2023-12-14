@@ -31,7 +31,7 @@ fn part_1(lines: &Vec<&str>) {
 fn part_2(lines: &Vec<&str>) {
     let combinations: Vec<_> = lines.iter().map(|line| {
         let (group_1, template_1) = parse_line(line);
-        let mut template_2: Vec<_>  = (0..5).map(|e| template_1).collect::<Vec<_>>().join("?").chars().collect();
+        let mut template_2: Vec<_>  = (0..5).map(|_| template_1).collect::<Vec<_>>().join("?").chars().collect();
         let mut group_2 = group_1.repeat(5);
         find_combinations(&mut template_2, &mut group_2, 0, &mut HashMap::new())
     }).collect();
