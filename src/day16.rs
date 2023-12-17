@@ -85,22 +85,6 @@ fn covered_elements(beams: &Vec<Beam>) -> Vec<(usize, usize)> {
     covered_elements
 }
 
-fn visualize(covered: &Vec<(usize, usize)>, map: &Vec<Vec<char>>) -> String {
-    let mut lines: Vec<String> = vec![];
-    for (row, line) in map.iter().enumerate() {
-        let mut newline = String::new();
-        for (column, _) in line.iter().enumerate() {
-            if covered.contains(&(row, column)) {
-                newline.push('#');
-            } else {
-                newline.push('.');
-            }
-        }
-        lines.push(newline);
-    }
-    lines.join("\n")
-}
-
 fn new_directions(current_direction: u8, ch: char) -> (u8, Option<u8>) {
     if ch == '.'{
         (current_direction, None)

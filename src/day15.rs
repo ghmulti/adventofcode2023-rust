@@ -39,7 +39,7 @@ pub(crate) fn day15() {
 }
 
 fn hash_str(str: &str) -> usize {
-    str.chars().fold(0, |mut acc, ch| { hash(acc, ch) })
+    str.chars().fold(0, |acc, ch| { hash(acc, ch) })
 }
 
 fn hash(mut acc: usize, ch: char) -> usize {
