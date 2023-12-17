@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 lazy_static = "1.4.0"
 num = "0.4.1"
+priority-queue = "1.3.2"
+pathfinding = "4.6.0"
