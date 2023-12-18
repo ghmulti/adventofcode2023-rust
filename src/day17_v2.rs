@@ -28,7 +28,7 @@ pub(crate) fn day17_v2() {
     distances.insert(start.clone(), 0);
 
     let mut visited: Vec<Node> = vec![];
-    while elements_to_discover.peek().is_some() {
+    while elements_to_discover.peek().unwrap().0.position != end {
         let (node, priority) = elements_to_discover.pop().unwrap();
         let heat = usize::MAX - priority;
         if visited.contains(&node) {
@@ -43,16 +43,17 @@ pub(crate) fn day17_v2() {
                 distances.insert(connection.position.clone(), accumulated_heat);
             }
             elements_to_discover.push(connection, usize::MAX - accumulated_heat);
+            // if distance_to_end(&connection.position, &end) < distance_to_end(&node.position, &end) {
+            //     elements_to_discover.push(connection, usize::MAX - accumulated_heat);
+            // }
         }
     }
 
-    for x in 0..map.len() {
-        for y in 0..map[0].len() {
-            print!(" {} ", distances.get(&(x as isize, y as isize)).unwrap())
-        }
-        print!("\n");
-    }
     println!("Min end distance: {:?}", distances.get(&end));
+}
+
+fn distance_to_end(position: &(isize, isize), end: &(isize, isize)) -> usize {
+    (end.0 - position.0 + end.1 - position.1) as usize
 }
 
 #[derive(Debug, Hash, Eq, PartialEq, Clone)]
