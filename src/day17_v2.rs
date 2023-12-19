@@ -52,9 +52,9 @@ pub(crate) fn day17_v2() {
     println!("Min end distance: {:?}", distances.get(&end));
 }
 
-fn distance_to_end(position: &(isize, isize), end: &(isize, isize)) -> usize {
-    (end.0 - position.0 + end.1 - position.1) as usize
-}
+// fn distance_to_end(position: &(isize, isize), end: &(isize, isize)) -> usize {
+//     (end.0 - position.0 + end.1 - position.1) as usize
+// }
 
 #[derive(Debug, Hash, Eq, PartialEq, Clone)]
 struct Node {
