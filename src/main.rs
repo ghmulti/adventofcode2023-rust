@@ -18,6 +18,7 @@ use crate::day17::day17;
 use crate::day17_v2::day17_v2;
 use crate::day18::day18;
 use crate::day19::day19;
+use crate::day20::day20;
 
 mod day01;
 mod day02;
@@ -39,26 +40,28 @@ mod day17;
 mod day18;
 mod day17_v2;
 mod day19;
+mod day20;
 
 fn main() {
-    day1();
-    day2();
-    day3();
-    day4();
-    day5(); // brute force alert :)
-    day6();
-    day7(); // brute force alert :)
-    day8();
-    day9();
-    day10();
-    day11();
-    day12();
-    day13();
-    day14();
-    day15();
-    day16();
-    day17();
-    day18();
-    day17_v2();
-    day19();
+    // day1();
+    // day2();
+    // day3();
+    // day4();
+    // day5(); // brute force alert :)
+    // day6();
+    // day7(); // brute force alert :)
+    // day8();
+    // day9();
+    // day10();
+    // day11();
+    // day12();
+    // day13();
+    // day14();
+    // day15();
+    // day16();
+    // day17();
+    // day18();
+    // day17_v2();
+    // day19();
+    day20();
 }
