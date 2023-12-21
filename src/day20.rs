@@ -4,7 +4,7 @@ pub(crate) fn day20() {
     println!("Day 20");
     // let file_content = include_str!("../resources/test-input.txt");
     let file_content = include_str!("../resources/day20.txt").trim();
-    println!("File content:\n{}", file_content);
+    // println!("File content:\n{}", file_content);
 
     let dict: Vec<_> = file_content.lines().map(|line| {
         let m = parse_line(line);
@@ -24,7 +24,7 @@ pub(crate) fn day20() {
             })
         }
     }
-    println!("Modules: {:#?}", modules);
+    // println!("Modules: {:#?}", modules);
 
     part_1(&mut modules);
 }
@@ -39,7 +39,7 @@ fn part_1(modules: &mut Vec<Box<dyn SignalRelay>>) {
         while !relay_to_do.is_empty() {
             // println!("Queue: {:?}", relay_to_do);
             let (source, target, signal) = relay_to_do.pop_front().unwrap();
-            println!("{} --{}--> {}", source, if signal == SIGNAL_LOW { "low" } else { "high"}, target);
+            // println!("{} --{}--> {}", source, if signal == SIGNAL_LOW { "low" } else { "high"}, target);
             let module_opt = modules.iter_mut().find(|e| e.name() == target.clone());
             if module_opt.is_none() {
                 // println!("Unable to find {} in modules, skipping", target);
@@ -63,9 +63,6 @@ fn part_1(modules: &mut Vec<Box<dyn SignalRelay>>) {
             }
         }
         // println!("Modules: {:#?}", modules);
-        // modules.iter_mut().for_each(|m| {
-        //     m.clean();
-        // })
     }
     println!("Finished invocation: counter_low {} counter_high {}, multiply {}", counter_low, counter_high, counter_high * counter_low)
 }
