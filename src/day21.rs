@@ -4,11 +4,11 @@ pub(crate) fn day21() {
     println!("Day 21");
     // let file_content = include_str!("../resources/test-input.txt");
     let file_content = include_str!("../resources/day21.txt").trim();
-    println!("File content:\n{}", file_content);
+    // println!("File content:\n{}", file_content);
 
-    let map = format_map(file_content.lines().collect::<Vec<_>>());
-    // let map: Vec<_> = file_content.lines().map(|line| line.chars().collect::<Vec<_>>()).collect::<Vec<_>>();
-    println!("Map: {:?}", map);
+    // let map = format_map(file_content.lines().collect::<Vec<_>>());
+    let map: Vec<_> = file_content.lines().map(|line| line.chars().collect::<Vec<_>>()).collect::<Vec<_>>();
+    // println!("Map: {:?}", map);
 
     let start_vec = map.iter().enumerate().filter_map(|(index, row)| {
         row.iter().enumerate().find(|(_, &ch)| ch == 'S').map(|(column, _)| (index, column))
@@ -16,6 +16,10 @@ pub(crate) fn day21() {
     let start = start_vec.first().unwrap();
     println!("Start point: {:?}", start);
 
+    part_1(start, &map);
+}
+
+fn part_1(start: &(usize, usize), map: &Vec<Vec<char>>) {
     let mut positions: HashSet<(usize, usize)> = HashSet::new();
     positions.insert(*start);
     println!("{:?}", find_movement(*start, &map));
@@ -27,7 +31,8 @@ pub(crate) fn day21() {
         });
         positions = new_positions;
     }
-    println!("Positions: {:?}, len={}", positions, positions.len());
+    // println!("Positions: {:?}", positions);
+    println!("Number of positions={}", positions.len());
     // visualize(&positions, &map);
 }
 
