@@ -27,12 +27,43 @@ pub(crate) fn day20() {
     // println!("Modules: {:#?}", modules);
 
     part_1(&mut modules);
+
+    part_2(&mut modules);
 }
+
+fn part_2(modules: &mut Vec<Box<dyn SignalRelay>>) {
+    let rx_targets = modules.iter().filter_map(|e| {
+        if e.destinations().contains(&String::from("rx")) {
+            Some(e.name())
+        } else {
+            None
+        }
+    }).collect::<Vec<_>>();
+    println!("Modules that sends signal to rx: {:?}", rx_targets); // ["jz"]
+
+    let jz_targets = modules.iter().filter_map(|e| {
+        if e.destinations().contains(&String::from("jz")) {
+            Some(e.name())
+        } else {
+            None
+        }
+    }).collect::<Vec<_>>();
+    println!("Modules that sends signal to jz: {:?}", jz_targets); // ["dh", "mk", "vf", "rn"]
+
+    // high signals on ["dh", "mk", "vf", "rn"]
+
+    // High signal for vf, number of button pressed 3847
+    // High signal for rn, number of button pressed 3923
+    // High signal for dh, number of button pressed 4001
+    // High signal for mk, number of button pressed 4091
+    println!("Fewest button presses to send low signal to rx: {}", [3847usize,3923,4001,4091].iter().fold(1usize, |acc, e| acc * e))
+}
+
 
 fn part_1(modules: &mut Vec<Box<dyn SignalRelay>>) {
     let mut counter_low = 0;
     let mut counter_high = 0;
-    for _ in 0..1000 {
+    for i in 0..5000 {
         let mut relay_to_do: VecDeque<(String, String, u8)> = VecDeque::new();
         relay_to_do.push_front((String::from("button"), String::from("broadcaster"), SIGNAL_LOW));
         counter_low += 1;
@@ -56,6 +87,9 @@ fn part_1(modules: &mut Vec<Box<dyn SignalRelay>>) {
             if new_signal == SIGNAL_LOW {
                 counter_low += new_targets.len();
             } else {
+                if ["dh", "mk", "vf", "rn"].contains(&&*target) {
+                    println!("High signal for {}, number of button pressed {}", target, i+1);
+                }
                 counter_high += new_targets.len();
             }
             for new_target in new_targets {
