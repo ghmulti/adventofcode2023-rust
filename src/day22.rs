@@ -8,11 +8,25 @@ pub(crate) fn day22() {
 
     let blocks : Vec<_>= file_content.lines().map(|e| parse_line(e)).collect::<Vec<_>>();
     // println!("Blocks: {:?}", blocks);
-    let (settled_blocks, counter): (Vec<_>, usize) = settle(&blocks);
-    println!("Settled blocks counter {}", counter);
+    let (settled_blocks, counter): (Vec<_>, Vec<usize>) = settle(&blocks);
+    println!("Settled blocks counter {:?}", counter.iter().sum::<usize>());
     // visualize_proj(&settled_blocks);
 
-    part_1(&settled_blocks)
+    part_1(&settled_blocks);
+    part_2(&settled_blocks);
+}
+
+fn part_2(blocks: &Vec<[RangeInclusive<usize>; 3]>) {
+    let mut counter = 0;
+    for index in 0..blocks.len() {
+        let mut cloned_blocks = blocks.clone();
+        cloned_blocks.remove(index);
+
+        let (_, movement_counter) = settle(&cloned_blocks);
+        counter += movement_counter.len();
+        // println!("[{} of {}] Adding {}", index, blocks.len(), counter)
+    }
+    println!("{} blocks would fall in total", counter);
 }
 
 fn part_1(blocks: &Vec<[RangeInclusive<usize>; 3]>) {
@@ -21,29 +35,31 @@ fn part_1(blocks: &Vec<[RangeInclusive<usize>; 3]>) {
         let mut cloned_blocks = blocks.clone();
         cloned_blocks.remove(index);
 
-        let (_, cnt) = settle(&cloned_blocks);
-        if cnt == 0 {
+        let (_, movement_counter) = settle(&cloned_blocks);
+        if movement_counter.len() == 0 {
             counter += 1;
         }
     }
     println!("{} bricks could be safely disintegrated", counter);
 }
 
-fn settle(blocks: &Vec<[RangeInclusive<usize>; 3]>) -> (Vec<[RangeInclusive<usize>; 3]>, usize) {
+fn settle(blocks: &Vec<[RangeInclusive<usize>; 3]>) -> (Vec<[RangeInclusive<usize>; 3]>, Vec<usize>) {
     let mut blocks_cloned = blocks.clone();
     blocks_cloned.sort_by(|e1, e2| {
        e2[2].start().cmp(e1[2].start())
     });
     // println!("Sorted blocks: {:?}", blocks_cloned);
     let mut result: Vec<[RangeInclusive<usize>; 3]> = vec![];
-    let mut total_counter = 0;
+    let mut total_block_movement_counter: Vec<usize> = vec![];
     while let Some(block) = blocks_cloned.pop() {
         // println!("Processing block: {:?}", block);
-        let (settled_block, counter) = settle_block(block, &result);
+        let (settled_block, block_movement_counter) = settle_block(block, &result);
         result.push(settled_block);
-        total_counter += counter;
+        if block_movement_counter > 0 {
+            total_block_movement_counter.push(block_movement_counter);
+        }
     }
-    (result, total_counter)
+    (result, total_block_movement_counter)
 }
 
 fn settle_block(block: [RangeInclusive<usize>; 3], settled: &Vec<[RangeInclusive<usize>; 3]>) -> ([RangeInclusive<usize>; 3], usize) {

@@ -20,6 +20,7 @@ use crate::day18::day18;
 use crate::day19::day19;
 use crate::day20::day20;
 use crate::day21::day21;
+use crate::day22::day22;
 
 mod day01;
 mod day02;
@@ -43,15 +44,16 @@ mod day17_v2;
 mod day19;
 mod day20;
 mod day21;
+mod day22;
 
 fn main() {
     day1();
     day2();
     day3();
     day4();
-    day5(); // brute force alert :)
+    day5();
     day6();
-    day7(); // brute force alert :)
+    day7();
     day8();
     day9();
     day10();
@@ -67,4 +69,5 @@ fn main() {
     day19();
     day20();
     day21();
+    day22();
 }
